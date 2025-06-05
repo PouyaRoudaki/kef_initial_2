@@ -3,7 +3,7 @@
 #' Computes the base measure weights for either 1D (using grid midpoints) or 2D (using Voronoi tessellation).
 #'
 #' @param sample A numeric vector or matrix of sample points. For 1D, a vector; for 2D, a matrix/data.frame with two columns.
-#' @param boundries A numeric vector (length 2) for 1D, or a 2x2 matrix for 2D defining min/max bounds of each axis.
+#' @param boundries A numeric vector (length 2) for 1D defining min/max bounds, or a 2x2 matrix for 2D, each row defining min/max bounds of each axis.
 #' @param dim Integer. Dimensionality of the sample: either 1 or 2.
 #'
 #' @return A numeric vector of base measure weights.
