@@ -1,5 +1,5 @@
 ## usethis namespace: start
 #' @importFrom Rcpp sourceCpp
-#' @useDynLib kef, .registration = TRUE
+#' @useDynLib kefV1, .registration = TRUE
 ## usethis namespace: end
 NULL

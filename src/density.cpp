@@ -4,87 +4,118 @@ using namespace arma;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
-// Density at sampled points
+// Compute unnormalized density at sampled points
 // [[Rcpp::export]]
-arma::vec density_at_sampled_x(const arma::mat& centered_kernel_mat_at_sampled,
-                                   double lambda_hat,
-                                   const arma::vec& weight_hat_vec) {
-  arma::vec diag_vals = centered_kernel_mat_at_sampled.diag();  // Extract diagonal elements
-  arma::vec p_vec = exp(lambda_hat * (centered_kernel_mat_at_sampled.t() * weight_hat_vec - 0.5 * diag_vals));
-  return p_vec;
+arma::vec unnormalised_density_samples(const arma::mat& centered_kernel_mat_samples,
+                                       double lambda,
+                                       const arma::vec& weight_vec) {
+  // Extract diagonal elements for self-kernel correction
+  arma::vec diag_vals = centered_kernel_mat_samples.diag();
+
+  // Compute the exponent term for the unnormalized density
+  arma::vec exponent_samples = lambda * (centered_kernel_mat_samples.t() * weight_vec - 0.5 * diag_vals);
+
+  // Exponentiate to get unnormalized density
+  arma::vec unnorm_dens_vec = arma::exp(exponent_samples);
+
+  return unnorm_dens_vec;
 }
 
-// Density at grid points
+// Compute unnormalized density at grid points
 // [[Rcpp::export]]
-arma::vec density_at_grid(const arma::mat& centered_kernel_mat_at_grid,
-                              const arma::vec& centered_kernel_self_grid,
-                              double lambda_hat,
-                              const arma::vec& weight_hat_vec) {
-  arma::vec p_vec = exp(lambda_hat * (centered_kernel_mat_at_grid.t() * weight_hat_vec - 0.5 * centered_kernel_self_grid));
-  return p_vec;
+arma::vec unnormalised_density_grids(const arma::mat& centered_kernel_mat_grids,
+                                     const arma::vec& centered_kernel_self_grids,
+                                     double lambda,
+                                     const arma::vec& weight_vec) {
+  // Compute the exponent term for the unnormalized density
+  arma::vec exponent_grids = lambda * (centered_kernel_mat_grids.t() * weight_vec - 0.5 * centered_kernel_self_grids);
+
+  // Exponentiate to get unnormalized density
+  arma::vec unnorm_dens_vec = arma::exp(exponent_grids);
+
+  return unnorm_dens_vec;
 }
 
-// Compute densities for sampled points without a grid
+// Compute normalized densities at sampled points without a grid
 // [[Rcpp::export]]
-arma::vec get_dens_wo_grid(const arma::mat& centered_kernel_mat_at_sampled,
-                           double min_x,
-                           double max_x,
-                           const arma::vec& sampled_x,
-                           double lambda_hat,
-                           const arma::vec& weight_hat_vec) {
+arma::vec get_dens_wo_grid(const arma::mat& centered_kernel_mat_samples,
+                           const arma::vec& samples,
+                           const arma::vec& base_measure_weights,
+                           double dimension,
+                           double lambda,
+                           const arma::vec& weight_vec) {
 
-  arma::vec f_x = lambda_hat * (centered_kernel_mat_at_sampled.t() * weight_hat_vec - 0.5 * centered_kernel_mat_at_sampled.diag());
-  double max_f_x = arma::max(f_x);  // Get max value
+  // Compute log-densities (unnormalized log-likelihood contributions)
+  arma::vec exponent = lambda * (centered_kernel_mat_samples.t() * weight_vec -
+    0.5 * centered_kernel_mat_samples.diag());
 
-  // Set a safety threshold to detect overflow risk (700 is a reasonable limit)
+  // Handle potential overflow in exponential calculation
   const double EXP_THRESHOLD = 700;
+  double max_exponent = arma::max(exponent);
+  arma::vec unnorm_density_samples;
 
-  arma::vec p_vec;
-
-  if (max_f_x > EXP_THRESHOLD) {
-    //Rcpp::Rcout << "Warning: Exponential function at risk of overflow. Applying log-scaling.\n";
-    p_vec = arma::exp(f_x - max_f_x);  // Apply log-stabilization
+  if (max_exponent > EXP_THRESHOLD) {
+    // Apply log-stabilization trick: exp(f_x - max_f_x)
+    unnorm_density_samples = arma::exp(exponent - max_exponent);
   } else {
-    p_vec = arma::exp(f_x);  // Compute normally if safe
+    unnorm_density_samples = arma::exp(exponent);
   }
 
-  // Compute normalizing constant safely using trapezoidal integration
-  double normalizing_cte = arma::as_scalar(arma::trapz(sampled_x, p_vec));
-
-  // Prevent division by zero
-  if (normalizing_cte == 0 || std::isnan(normalizing_cte) || std::isinf(normalizing_cte)) {
-    Rcpp::Rcout << "Error: Normalizing constant is zero, NaN, or Inf\n";
-    return arma::vec(sampled_x.n_elem, arma::fill::zeros);  // Return a zero vector to avoid NaN propagation
+  // Compute normalization constant
+  double normalizing_cte;
+  if (dimension == 1) {
+    // 1D case: use trapezoidal rule for integration
+    normalizing_cte = arma::as_scalar(trapz(samples, unnorm_density_samples));
+  } else {
+    // Multivariate case: use dot product with base measure weights
+    normalizing_cte = arma::dot(base_measure_weights, unnorm_density_samples);
   }
 
-  return p_vec / normalizing_cte;  // Return normalized density
+  // Check for invalid normalization constant
+  if (normalizing_cte == 0.0 || std::isnan(normalizing_cte) || std::isinf(normalizing_cte)) {
+    Rcpp::Rcout << "Error: Normalizing constant is zero, NaN, or Inf.\n";
+    return arma::vec(samples.n_elem, arma::fill::zeros);  // Return zero vector to avoid NaNs
+  }
+
+  // Return normalized density
+  return unnorm_density_samples / normalizing_cte;
 }
 
-
-// Compute densities for sampled and grid points
+// Compute normalized densities at sampled and grid points
 // [[Rcpp::export]]
-List get_dens_or_prob(const arma::mat& centered_kernel_mat_at_sampled,
-                          const arma::mat& centered_kernel_mat_at_grid,
-                          const arma::vec& centered_kernel_self_grid,
-                          const arma::vec& sampled_x,
-                          const arma::vec& x_grid,
-                          double lambda_hat,
-                          const arma::vec& weight_hat_vec,
-                          bool type_of_p_is_prob = true,
-                          bool type_of_q_is_prob = true) {
+Rcpp::List get_dens(const arma::mat& centered_kernel_mat_samples,
+                    const arma::mat& centered_kernel_mat_grids,
+                    const arma::vec& centered_kernel_self_grids,
+                    const arma::vec& samples,
+                    const arma::vec& grids,
+                    const arma::vec& base_measure_weights,
+                    double dimension,
+                    double lambda,
+                    const arma::vec& weight_vec) {
 
-  arma::vec dens_sampled_x = density_at_sampled_x(centered_kernel_mat_at_sampled, lambda_hat, weight_hat_vec);
-  arma::vec dens_grid = density_at_grid(centered_kernel_mat_at_grid, centered_kernel_self_grid, lambda_hat, weight_hat_vec);
+  // Compute unnormalized density at sampled points
+  arma::vec unnorm_density_samples = unnormalised_density_samples(centered_kernel_mat_samples, lambda, weight_vec);
 
-  double normalizing_cte = arma::as_scalar(trapz(x_grid, dens_grid));
-  arma::vec dens_sampled_x_norm = dens_sampled_x / normalizing_cte;
-  arma::vec dens_grid_norm = dens_grid / normalizing_cte;
+  // Compute unnormalized density at grid points
+  arma::vec unnorm_density_grids = unnormalised_density_grids(centered_kernel_mat_grids, centered_kernel_self_grids, lambda, weight_vec);
 
-  arma::vec prob_sampled_x = dens_sampled_x_norm / sum(dens_sampled_x_norm);
-  arma::vec prob_grid_x = dens_grid_norm / sum(dens_grid_norm);
+  // Compute normalization constant
+  double normalizing_cte;
+  if (dimension == 1) {
+    // 1D case: integrate using trapezoidal rule over grid
+    normalizing_cte = arma::as_scalar(trapz(grids, unnorm_density_grids));
+  } else {
+    // Higher-dimensional case: weighted sum over base measure weights
+    normalizing_cte = arma::dot(base_measure_weights, unnorm_density_samples);
+  }
 
-  return List::create(
-    Named("sampled_x") = (type_of_p_is_prob ? prob_sampled_x : dens_sampled_x_norm),
-    Named("grid_x") = (type_of_q_is_prob ? prob_grid_x : dens_grid_norm)
+  // Normalize densities
+  arma::vec dens_samples_norm = unnorm_density_samples / normalizing_cte;
+  arma::vec dens_grid_norm = unnorm_density_grids / normalizing_cte;
+
+  // Return normalized densities
+  return Rcpp::List::create(
+    Rcpp::Named("samples") = dens_samples_norm,
+    Rcpp::Named("grids") = dens_grid_norm
   );
 }

@@ -20,52 +20,73 @@
 #' print(w_estimates)
 #'
 #' @export
-get_true_weights <- function(sample, grid, true_density_at_grid) {
+get_true_weights <- function(samples, grids, true_density_grids) {
+
+  # Check samples and grids dimensionality
+  if (is.vector(samples)) {
+    dimension <- 1
+    if (!is.vector(grids)) stop("If samples is a vector, grids must also be a vector.")
+    if (length(samples) > length(grids)) {
+      warning("grids has fewer points than the samples. Consider increasing grids size for better resolution.")
+    }
+
+  } else if (is.matrix(samples)) {
+    dimension <- ncol(samples)
+    if (!is.matrix(grids) || ncol(grids) != dimension)
+      stop("If samples is a matrix, grids must also be a matrix with the same number of columns.")
+    if (nrow(samples) > nrow(grids)) {
+      warning("grids has fewer points than the samples. Consider increasing grids size for better resolution.")
+    }
+  } else {
+    stop("samples must be either a numeric vector or a numeric matrix.")
+  }
 
   # Compute the centered kernel matrix at sampled points
-  centered_kernel_mat_at_sampled <- centered_kernel_matrix(
-    first_vec_kernel = sample,
-    second_vec_kernel = sample,
+  centered_kernel_mat_samples <- centered_kernel_matrix(
+    dimension = dimension,
+    eval_points_1 = samples,
+    eval_points_2 = samples,
     centering_grid = grid,
     hurst_coef = 0.5
   )
 
   # Compute the centered kernel matrix at grid points
-  centered_kernel_mat_at_grid <- centered_kernel_matrix(
-    first_vec_kernel = sample,
-    second_vec_kernel = grid,
-    centering_grid = grid,
+  centered_kernel_mat_grids <- centered_kernel_matrix(
+    dimension = dimension,
+    eval_points_1 = samples,
+    eval_points_2 = grids,
+    centering_grid = grids,
     hurst_coef = 0.5
   )
 
   # Compute the diagonal of the centered kernel matrix at grid points
   centered_kernel_self_grid <- diag(centered_kernel_matrix(
-    first_vec_kernel = grid,
-    second_vec_kernel = grid,
-    centering_grid = grid,
+    dimension = dimension,
+    eval_points_1 = grids,
+    eval_points_2 = grids,
+    centering_grid = grids,
     hurst_coef = 0.5
   ))
 
   # Given true f(x) for all grid points
   f_x <- true_density_at_grid
 
+  # Estimating the base measure
+  base_measure_weights <- get_base_measures(samples, boundaries, dimension = dimension)
+
   # Function to compute predicted f(x) given weights w
   predicted_f <- function(w) {
-    numerator <- get_dens_or_prob(
-      centered_kernel_mat_at_sampled,
-      centered_kernel_mat_at_grid,
-      centered_kernel_self_grid,
-      sample, grid,
-      lambda_hat = 1,
-      weight_hat_vec = w,
-      type_of_p_is_prob = FALSE,
-      type_of_q_is_prob = FALSE
-    )$grid_x
+    density <- get_dens(centered_kernel_mat_samples,
+                        centered_kernel_mat_grids,
+                        centered_kernel_self_grids,
+                        samples,
+                        grids,
+                        base_measure_weights,
+                        dimension,
+                        lambda = 1,
+                        weight_vec)$grids
 
-    # Compute the denominator using numerical integration
-    denom <- pracma::trapz(grid, numerator)
-
-    return(numerator / denom)
+    return(density)
   }
 
   # Define loss function for optimization
@@ -79,7 +100,6 @@ get_true_weights <- function(sample, grid, true_density_at_grid) {
 
   result <- optim(initial_w, loss_function, method = "L-BFGS-B")
   approx_true_w <- result$par
-
 
 
   return(approx_true_w)

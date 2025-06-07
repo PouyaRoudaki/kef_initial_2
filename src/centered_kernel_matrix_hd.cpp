@@ -7,60 +7,64 @@ using namespace Rcpp;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::plugins(openmp)]]
+
 // [[Rcpp::export]]
-arma::mat centered_kernel_matrix_hd(const arma::mat& first_mat_kernel,
-                                    const arma::mat& second_mat_kernel,
-                                    const arma::mat& centering_mat_grid,
+arma::mat centered_kernel_matrix_hd(const arma::mat& eval_points_1,
+                                    const arma::mat& eval_points_2,
+                                    const arma::mat& centering_grid,
                                     double hurst_coef) {
-  int n0 = first_mat_kernel.n_rows;
-  int n1 = second_mat_kernel.n_rows;
-  int n2 = centering_mat_grid.n_rows;
 
-  arma::mat term1_matrix(n0, n1);
-  arma::mat term2_matrix(n0, n2);
-  arma::mat term3_matrix(n1, n2);
-  arma::mat term4_matrix(n2, n2);
+  int n1 = eval_points_1.n_rows;
+  int n2 = eval_points_2.n_rows;
+  int ng = centering_grid.n_rows;
 
-  // Term1: pairwise between first_mat_kernel and second_mat_kernel
-#pragma omp parallel for collapse(2)
-  for (int i = 0; i < n0; i++) {
-    for (int j = 0; j < n1; j++) {
-      term1_matrix(i, j) = std::pow(arma::norm(first_mat_kernel.row(i) - second_mat_kernel.row(j), 2), 2 * hurst_coef);
-    }
-  }
+  arma::mat h_xx_prime(n1, n2);
+  arma::mat h_xz(n1, ng);
+  arma::mat h_xprime_z(n2, ng);
+  arma::mat h_zz(ng, ng);
 
-  // Term2: first_mat_kernel vs centering_mat_grid
-#pragma omp parallel for collapse(2)
-  for (int i = 0; i < n0; i++) {
-    for (int j = 0; j < n2; j++) {
-      term2_matrix(i, j) = std::pow(arma::norm(first_mat_kernel.row(i) - centering_mat_grid.row(j), 2), 2 * hurst_coef);
-    }
-  }
-
-  // Term3: second_mat_kernel vs centering_mat_grid
+  // Term 1: h(x, x')
 #pragma omp parallel for collapse(2)
   for (int i = 0; i < n1; i++) {
     for (int j = 0; j < n2; j++) {
-      term3_matrix(i, j) = std::pow(arma::norm(second_mat_kernel.row(i) - centering_mat_grid.row(j), 2), 2 * hurst_coef);
+      h_xx_prime(i, j) = std::pow(arma::norm(eval_points_1.row(i) - eval_points_2.row(j), 2), 2 * hurst_coef);
     }
   }
 
-  // Term4: centering_mat_grid vs centering_mat_grid
+  // Term 2: h(x, z)
+#pragma omp parallel for collapse(2)
+  for (int i = 0; i < n1; i++) {
+    for (int j = 0; j < ng; j++) {
+      h_xz(i, j) = std::pow(arma::norm(eval_points_1.row(i) - centering_grid.row(j), 2), 2 * hurst_coef);
+    }
+  }
+
+  // Term 3: h(x', z)
 #pragma omp parallel for collapse(2)
   for (int i = 0; i < n2; i++) {
-    for (int j = 0; j < n2; j++) {
-      term4_matrix(i, j) = std::pow(arma::norm(centering_mat_grid.row(i) - centering_mat_grid.row(j), 2), 2 * hurst_coef);
+    for (int j = 0; j < ng; j++) {
+      h_xprime_z(i, j) = std::pow(arma::norm(eval_points_2.row(i) - centering_grid.row(j), 2), 2 * hurst_coef);
     }
   }
 
-  arma::vec term2_means = arma::mean(term2_matrix, 1);  // n0 × 1
-  arma::vec term3_means = arma::mean(term3_matrix, 1);  // n1 × 1
-  double term4_mean = arma::mean(arma::vectorise(term4_matrix));
+  // Term 4: h(z, z)
+#pragma omp parallel for collapse(2)
+  for (int i = 0; i < ng; i++) {
+    for (int j = 0; j < ng; j++) {
+      h_zz(i, j) = std::pow(arma::norm(centering_grid.row(i) - centering_grid.row(j), 2), 2 * hurst_coef);
+    }
+  }
 
-  arma::mat result_matrix = -0.5 * (term1_matrix -
-    arma::repmat(term2_means, 1, n1) -
-    arma::repmat(term3_means.t(), n0, 1) +
-    term4_mean);
+  arma::vec mean_h_xz = arma::mean(h_xz, 1);        // n1 × 1
+  arma::vec mean_h_xprime_z = arma::mean(h_xprime_z, 1);  // n2 × 1
+  double mean_h_zz = arma::mean(arma::vectorise(h_zz));
 
-  return result_matrix;
+  arma::mat centered_kernel = -0.5 * (
+    h_xx_prime -
+      arma::repmat(mean_h_xz, 1, n2) -
+      arma::repmat(mean_h_xprime_z.t(), n1, 1) +
+      mean_h_zz
+  );
+
+  return centered_kernel;
 }

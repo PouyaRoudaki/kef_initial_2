@@ -4,14 +4,14 @@
 \alias{get_base_measures}
 \title{Compute Base Measure Weights}
 \usage{
-get_base_measures(sample, boundries, dim = 1)
+get_base_measures(samples, boundaries, dimension = 1)
 }
 \arguments{
+\item{boundaries}{A numeric vector (length 2) for 1D defining min/max bounds, or a 2x2 matrix for 2D, each row defining min/max bounds of each axis.}
+
+\item{dimension}{Integer. Dimensionality of the sample: either 1 or 2.}
+
 \item{sample}{A numeric vector or matrix of sample points. For 1D, a vector; for 2D, a matrix/data.frame with two columns.}
-
-\item{boundries}{A numeric vector (length 2) for 1D defining min/max bounds, or a 2x2 matrix for 2D, each row defining min/max bounds of each axis.}
-
-\item{dim}{Integer. Dimensionality of the sample: either 1 or 2.}
 }
 \value{
 A numeric vector of base measure weights.
@@ -20,6 +20,6 @@ A numeric vector of base measure weights.
 Computes the base measure weights for either 1D (using grid midpoints) or 2D (using Voronoi tessellation).
 }
 \examples{
-get_base_measures(sample = runif(100), boundries = c(0,1), dim = 1)
-get_base_measures(sample = matrix(runif(200), ncol=2), boundries = matrix(c(0,1,0,1), nrow=2), dim = 2)
+get_base_measures(sample = runif(100), boundaries = c(0,1), dimension = 1)
+get_base_measures(sample = matrix(runif(200), ncol=2), boundaries = matrix(c(0,1,0,1), nrow=2), dimension = 2)
 }

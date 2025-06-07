@@ -6,11 +6,11 @@ using namespace Rcpp;
 using namespace arma;
 
 // Function declaration (prototype)
-arma::vec get_dens_wo_grid(const arma::mat& centered_kernel_mat_at_sampled,
-                           double min_x,
-                           double max_x,
-                           const arma::vec& sampled_x,
-                           double lambda_hat,
-                           const arma::vec& weight_hat_vec);
+arma::vec get_dens_wo_grid(const arma::mat& centered_kernel_mat_samples,
+                           const arma::vec& samples,
+                           const arma::vec& base_measure_weights,
+                           double dimension,
+                           double lambda,
+                           const arma::vec& weight_vec);
 
 #endif  // DENSITY_H

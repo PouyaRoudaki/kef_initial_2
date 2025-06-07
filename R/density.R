@@ -1,49 +1,63 @@
-#' Compute Density at Sampled Points (Fast C++ Version)
-#' @param centered_kernel_mat_at_sampled Matrix of centered kernel values.
-#' @param lambda_hat Scalar lambda parameter.
-#' @param weight_hat_vec Vector of weights.
-#' @return Density values at sampled points.
+#' Compute Unnormalized Density at Sampled Points
+#'
+#' @param centered_kernel_mat_samples Matrix of centered kernel values for samples.
+#' @param lambda Scalar lambda parameter.
+#' @param weight_vec Vector of weights.
+#' @return Unnormalized density values at sampled points.
 #' @export
-density_at_sampled_x <- function(centered_kernel_mat_at_sampled, lambda_hat, weight_hat_vec) {
-  .Call(`_kef_density_at_sampled_x`, centered_kernel_mat_at_sampled, lambda_hat, weight_hat_vec)
+unnormalised_density_samples <- function(centered_kernel_mat_samples, lambda, weight_vec) {
+  .Call(`_kefV1_unnormalised_density_samples`, centered_kernel_mat_samples, lambda, weight_vec)
 }
 
-#' Compute Density at Grid Points (Fast C++ Version)
-#' @param centered_kernel_mat_at_grid Matrix of kernel values at grid points.
-#' @param centered_kernel_self_grid Self-kernel values at grid points.
-#' @param lambda_hat Scalar lambda parameter.
-#' @param weight_hat_vec Vector of weights.
-#' @return Density values at grid points.
+#' Compute Unnormalized Density at Grid Points
+#'
+#' @param centered_kernel_mat_grids Matrix of centered kernel values between grid and sample points.
+#' @param centered_kernel_self_grids Vector of self-kernel values at grid points.
+#' @param lambda Scalar lambda parameter.
+#' @param weight_vec Vector of weights.
+#' @return Unnormalized density values at grid points.
 #' @export
-density_at_grid <- function(centered_kernel_mat_at_grid, centered_kernel_self_grid, lambda_hat, weight_hat_vec) {
-  .Call(`_kef_density_at_grid`, centered_kernel_mat_at_grid, centered_kernel_self_grid, lambda_hat, weight_hat_vec)
+unnormalised_density_grids <- function(centered_kernel_mat_grids, centered_kernel_self_grids, lambda, weight_vec) {
+  .Call(`_kefV1_unnormalised_density_grids`, centered_kernel_mat_grids, centered_kernel_self_grids, lambda, weight_vec)
 }
 
-#' Compute Densities for Sampled Points Without a Grid (Fast C++ Version)
-#' @param centered_kernel_mat_at_sampled Centered kernel matrix at sampled points.
-#' @param min_x Minimum x value.
-#' @param max_x Maximum x value.
-#' @param sampled_x Sampled x values.
-#' @param lambda_hat Scalar lambda parameter.
-#' @param weight_hat_vec Vector of weights.
-#' @return Normalized densities at sampled points.
+#' Compute Normalized Densities at Sampled Points Without a Grid
+#'
+#' @param centered_kernel_mat_samples Centered kernel matrix at sampled points.
+#' @param samples Sample locations.
+#' @param base_measure_weights Vector of base measure weights (used for normalizing constant if dim > 1).
+#' @param dimension Dimensionality of the data (1 or higher).
+#' @param lambda Scalar lambda parameter.
+#' @param weight_vec Vector of weights.
+#' @return Normalized density values at sampled points.
 #' @export
-get_dens_wo_grid <- function(centered_kernel_mat_at_sampled, min_x, max_x, sampled_x, lambda_hat, weight_hat_vec) {
-  .Call(`_kef_get_dens_wo_grid`, centered_kernel_mat_at_sampled, min_x, max_x, sampled_x, lambda_hat, weight_hat_vec)
+get_dens_wo_grid <- function(centered_kernel_mat_samples, samples, base_measure_weights, dimension, lambda, weight_vec) {
+  .Call(`_kefV1_get_dens_wo_grid`, centered_kernel_mat_samples, samples, base_measure_weights, dimension, lambda, weight_vec)
 }
 
-#' Compute Densities for Sampled and Grid Points (Fast C++ Version)
-#' @param centered_kernel_mat_at_sampled Centered kernel matrix at sampled points.
-#' @param centered_kernel_mat_at_grid Centered kernel matrix at grid points.
-#' @param centered_kernel_self_grid Self-kernel values at grid points.
-#' @param sampled_x Sampled x values.
-#' @param x_grid Grid x values.
-#' @param lambda_hat Scalar lambda parameter.
-#' @param weight_hat_vec Vector of weights.
-#' @param type_of_p_is_prob Logical: if TRUE, return probabilities.
-#' @param type_of_q_is_prob Logical: if TRUE, return probabilities.
-#' @return List with densities at sampled and grid points.
+#' Compute Normalized Densities at Sampled and Grid Points
+#'
+#' @param centered_kernel_mat_samples Centered kernel matrix at sampled points.
+#' @param centered_kernel_mat_grids Centered kernel matrix at grid points.
+#' @param centered_kernel_self_grids Self-kernel values at grid points.
+#' @param samples Sampled x values.
+#' @param grids Grid x values.
+#' @param base_measure_weights Vector of base measure weights (used for normalizing constant if dim > 1).
+#' @param dimension Dimensionality of the data (1 or higher).
+#' @param lambda Scalar lambda parameter.
+#' @param weight_vec Vector of weights.
+#' @return A list with normalized densities at sampled and grid points.
 #' @export
-get_dens_or_prob <- function(centered_kernel_mat_at_sampled, centered_kernel_mat_at_grid, centered_kernel_self_grid, sampled_x, x_grid, lambda_hat, weight_hat_vec, type_of_p_is_prob = TRUE, type_of_q_is_prob = TRUE) {
-  .Call(`_kef_get_dens_or_prob`, centered_kernel_mat_at_sampled, centered_kernel_mat_at_grid, centered_kernel_self_grid, sampled_x, x_grid, lambda_hat, weight_hat_vec, type_of_p_is_prob, type_of_q_is_prob)
+get_dens <- function(centered_kernel_mat_samples,
+                     centered_kernel_mat_grids,
+                     centered_kernel_self_grids,
+                     samples,
+                     grids,
+                     base_measure_weights,
+                     dimension,
+                     lambda,
+                     weight_vec) {
+  .Call(`_kefV1_get_dens`, centered_kernel_mat_samples, centered_kernel_mat_grids, centered_kernel_self_grids,
+        samples, grids, base_measure_weights, dimension, lambda, weight_vec)
 }
+

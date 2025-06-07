@@ -5,40 +5,29 @@
 \title{Estimate Weights Using the Barzilai-Borwein Method (Optimized with Rcpp)}
 \usage{
 get_weights(
-  lambda_hat,
-  tau_hat,
-  centered_kernel_mat_at_sampled,
-  sampled_x,
-  min_x,
-  max_x,
-  prior_variance_p_vector = NULL,
-  print_trace = FALSE,
-  init = FALSE,
-  q_with_base = TRUE,
-  with_prob_in_var = TRUE,
-  normalised_q = TRUE,
-  normalised_p = TRUE,
-  p_with_base = FALSE
+  lambda,
+  tau,
+  centered_kernel_mat_at_samples,
+  samples,
+  base_measure_weights,
+  dimension,
+  print_trace = FALSE
 )
 }
 \arguments{
-\item{lambda_hat}{A scalar representing the estimated lambda parameter.}
+\item{tau}{A scalar representing the tau parameter.}
 
-\item{tau_hat}{A scalar representing the estimated tau parameter.}
+\item{centered_kernel_mat_at_samples}{A matrix representing the centered kernel at sampled points.}
 
-\item{centered_kernel_mat_at_sampled}{A matrix representing the centered kernel at sampled points.}
+\item{samples}{A numeric vector of sampled points.}
 
-\item{sampled_x}{A numeric vector of sampled points.}
-
-\item{min_x}{The minimum domain value.}
-
-\item{max_x}{The maximum domain value.}
-
-\item{prior_variance_p_vector}{A numeric vector for prior variance probabilities. Default is NULL.}
+\item{base_measure_weights}{A numeric vector of base measures for sample points.}
 
 \item{print_trace}{Logical; if TRUE, prints progress updates.}
 
-\item{init}{Logical; if TRUE, the weights calculation has a sub-sampling method for initialization.}
+\item{lambdas}{A scalar representing the lambda parameter.}
+
+\item{prior_variance_p_vector}{A numeric vector for prior variance probabilities. Default is NULL.}
 }
 \value{
 A numeric vector of estimated weights.

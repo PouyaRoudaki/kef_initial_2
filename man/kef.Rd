@@ -4,22 +4,14 @@
 \alias{kef}
 \title{Kernel Density Estimation Using the KEF Method}
 \usage{
-kef(
-  sample,
-  grid,
-  lambda,
-  tau,
-  q_with_base = TRUE,
-  with_prob_in_var = TRUE,
-  normalised_q = TRUE,
-  normalised_p = TRUE,
-  p_with_base = TRUE
-)
+kef(samples, grids, boundaries, lambda, tau)
 }
 \arguments{
-\item{sample}{A numeric vector representing the observed sample points.}
+\item{samples}{A numeric vector representing the observed samples points.}
 
-\item{grid}{A numeric vector representing the evaluation grid.}
+\item{grids}{A numeric vector representing the evaluation grids.}
+
+\item{boundaries}{A numeric vector (for 1D) or matrix (for multi-dimensional input) specifying the domain boundaries. Optional; if not provided, the domain boundaries are extended by 10\% around the samples range.}
 
 \item{lambda}{A numeric scalar for the lambda parameter (regularization term).}
 
@@ -29,26 +21,26 @@ kef(
 A list containing:
 \itemize{
 \item \code{weights} - The estimated weight vector.
-\item \code{probs_sample} - Density estimates at sample points.
-\item \code{probs_grid} - Density estimates at grid points (only if \code{length(sample) < 1000}).
+\item \code{probs_samples} - Density estimates at samples points.
+\item \code{probs_grids} - Density estimates at grids points (only if \code{length(samples) < 1000}).
 \item \code{time} - The function's execution time.
 }
 }
 \description{
 This function estimates density using kernel exponential family (KEF) methods.
 It constructs a kernel matrix and computes weights using the Barzilai-Borwein
-optimization method. If the sample size is large, it avoids computational complexity
-by returning density estimates only at sample points.
+optimization method. If the samples size is large, it avoids computational complexity
+by returning density estimates only at samples points.
 }
 \details{
-If the sample size is \code{>= 1000}, the function \strong{only returns densities at sample points}
+If the samples size is \code{>= 1000}, the function \strong{only returns densities at samples points}
 to avoid computational complexity. A warning is issued in this case.
 }
 \examples{
-sample <- rnorm(500)
-grid <- seq(-3, 3, length.out = 100)
+samples <- rnorm(500)
+grids <- seq(-3, 3, length.out = 100)
 lambda <- 0.1
 tau <- 0.5
-result <- kef(sample, grid, lambda, tau)
-plot(grid, result$probs_grid, type = "l", main = "Estimated Density", ylab = "Density")
+result <- kef(samples = samples, grids = grids,lambda = lambda, tau = tau)
+plot(grids, result$grids, type = "l", main = "Estimated Density", ylab = "Density")
 }

@@ -4,7 +4,7 @@
 \alias{get_true_weights}
 \title{Compute Approximation of True Weights for Density Estimation}
 \usage{
-get_true_weights(sample, grid, true_density_at_grid)
+get_true_weights(samples, grids, true_density_grids)
 }
 \arguments{
 \item{sample}{A numeric vector of sampled points.}
