@@ -7,7 +7,7 @@
 #'
 #' @param lambdas A scalar representing the lambda parameter.
 #' @param tau A scalar representing the tau parameter.
-#' @param centered_kernel_mat_at_samples A matrix representing the centered kernel at sampled points.
+#' @param centered_kernel_mat_samples A matrix representing the centered kernel at sampled points.
 #' @param samples A numeric vector of sampled points.
 #' @param base_measure_weights A numeric vector of base measures for sample points.
 #' @param prior_variance_p_vector A numeric vector for prior variance probabilities. Default is NULL.
@@ -18,21 +18,21 @@
 #' @export
 get_weights <- function(lambda,
                         tau,
-                        centered_kernel_mat_at_samples,
+                        centered_kernel_mat_samples,
                         samples,
                         base_measure_weights,
                         dimension,
                         print_trace = FALSE) {
 
   # Number of sampled points
-  n <- nrow(centered_kernel_mat_at_samples)
+  n <- nrow(centered_kernel_mat_samples)
 
   # Wrapper for BBsolve using the Rcpp function
   s_function <- function(weight_vec) {
     result <- get_s_function(weight_vec,
                              lambda,
                              tau,
-                             centered_kernel_mat_at_samples,
+                             centered_kernel_mat_samples,
                              samples,
                              base_measure_weights,
                              dimension)

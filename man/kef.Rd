@@ -4,7 +4,7 @@
 \alias{kef}
 \title{Kernel Density Estimation Using the KEF Method}
 \usage{
-kef(samples, grids, boundaries, lambda, tau)
+kef(samples, grids, boundaries = NULL, lambda, tau)
 }
 \arguments{
 \item{samples}{A numeric vector representing the observed samples points.}

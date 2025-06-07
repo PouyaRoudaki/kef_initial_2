@@ -45,6 +45,10 @@ arma::vec get_dens_wo_grid(const arma::mat& centered_kernel_mat_samples,
                            double lambda,
                            const arma::vec& weight_vec) {
 
+  if (arma::any(base_measure_weights < 0)) {
+    Rcpp::Rcout << "Warning: Negative base measure weights detected.\n";
+  }
+
   // Compute log-densities (unnormalized log-likelihood contributions)
   arma::vec exponent = lambda * (centered_kernel_mat_samples.t() * weight_vec -
     0.5 * centered_kernel_mat_samples.diag());
@@ -77,8 +81,19 @@ arma::vec get_dens_wo_grid(const arma::mat& centered_kernel_mat_samples,
     return arma::vec(samples.n_elem, arma::fill::zeros);  // Return zero vector to avoid NaNs
   }
 
+  arma::vec dens_samples;
+  dens_samples = unnorm_density_samples / normalizing_cte;
+
+  if (normalizing_cte < 0) {
+    Rcpp::Rcout << "Error: Negative normalizing constant detected. Debug inputs.\n";
+  }
+
+  //if (arma::any(dens_samples < 0)) {
+  //  Rcpp::Rcout << "Error: Negative densities detected. Debug inputs.\n";
+  //}
+
   // Return normalized density
-  return unnorm_density_samples / normalizing_cte;
+  return dens_samples;
 }
 
 // Compute normalized densities at sampled and grid points

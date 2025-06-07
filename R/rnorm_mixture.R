@@ -27,12 +27,12 @@ rnorm_mixture <- function(n, means, sds, mixture_weights) {
     stop("The mixture weights must sum to 1.")
   }
 
-  if(length(means) != length(sds) || length(means) != length(probabilities)) {
+  if(length(means) != length(sds) || length(means) != length(mixture_weights)) {
     stop("Lengths of means, sds, and probabilities must be equal")
   }
 
   # Generate component assignments based on mixture probabilities
-  components <- sample(1:length(probabilities), size = n, replace = TRUE, prob = probabilities)
+  components <- sample(1:length(mixture_weights), size = n, replace = TRUE, prob = mixture_weights)
 
   # Generate samples
   samples <- mapply(function(component, n) {

@@ -7,7 +7,7 @@
 get_weights(
   lambda,
   tau,
-  centered_kernel_mat_at_samples,
+  centered_kernel_mat_samples,
   samples,
   base_measure_weights,
   dimension,
@@ -17,7 +17,7 @@ get_weights(
 \arguments{
 \item{tau}{A scalar representing the tau parameter.}
 
-\item{centered_kernel_mat_at_samples}{A matrix representing the centered kernel at sampled points.}
+\item{centered_kernel_mat_samples}{A matrix representing the centered kernel at sampled points.}
 
 \item{samples}{A numeric vector of sampled points.}
 

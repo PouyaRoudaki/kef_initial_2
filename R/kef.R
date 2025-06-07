@@ -7,9 +7,9 @@
 #'
 #' @param samples A numeric vector representing the observed samples points.
 #' @param grids A numeric vector representing the evaluation grids.
-#' @param boundaries A numeric vector (for 1D) or matrix (for multi-dimensional input) specifying the domain boundaries. Optional; if not provided, the domain boundaries are extended by 10% around the samples range.
 #' @param lambda A numeric scalar for the lambda parameter (regularization term).
 #' @param tau A numeric scalar for the tau parameter.
+#' @param boundaries A numeric vector (for 1D) or matrix (for multi-dimensional input) specifying the domain boundaries. Optional; if not provided, the domain boundaries are extended by 10% around the samples range.
 #'
 #' @return A list containing:
 #' \itemize{
@@ -33,7 +33,7 @@
 #' result <- kef(samples = samples, grids = grids,lambda = lambda, tau = tau)
 #' plot(grids, result$grids, type = "l", main = "Estimated Density", ylab = "Density")
 
-kef <- function(samples, grids, boundaries, lambda, tau) {
+kef <- function(samples, grids, lambda, tau, boundaries = NULL) {
 
   # Start timer
   start_time <- Sys.time()
@@ -62,6 +62,17 @@ kef <- function(samples, grids, boundaries, lambda, tau) {
   # Check samples and grids dimensionality
   if (is.vector(samples)) {
     dimension <- 1
+
+    sort_index <- order(samples)
+    unsort_index <- order(sort_index)  # this gives the positions to map back
+
+    # Sorted samples for computing base measures
+    # This is required because further we used trapz for 1 dimensional normalizing
+    # constant and trapz function needs ordered input. Instead of doing this
+    # inside our functions it's better to do it here.
+    # Get the sort index and reverse mapping
+    samples <- samples[sort_index]
+
     if (!is.vector(grids)) stop("If samples is a vector, grids must also be a vector.")
     if (!is.vector(boundaries) || length(boundaries) != 2)
       stop("For 1D input, boundaries must be a vector of length 2 specifying the min and max of the domain.")
@@ -83,7 +94,6 @@ kef <- function(samples, grids, boundaries, lambda, tau) {
     stop("samples must be either a numeric vector or a numeric matrix.")
   }
 
-
   # Compute the centered kernel matrix at samplesd points
   centered_kernel_mat_samples <- centered_kernel_matrix(
     dimension = dimension,
@@ -103,7 +113,7 @@ kef <- function(samples, grids, boundaries, lambda, tau) {
 
   # Compute kernel matrices for the grids if needed
   if (!density_only_samples) {
-    centered_kernel_mat_at_grids <- centered_kernel_matrix(
+    centered_kernel_mat_grids <- centered_kernel_matrix(
       dimension = dimension,
       eval_points_1 = samples,
       eval_points_2 = grids,
@@ -127,7 +137,7 @@ kef <- function(samples, grids, boundaries, lambda, tau) {
   weights_hat <- get_weights(
     lambda = lambda,
     tau = tau,
-    centered_kernel_mat_at_samples = centered_kernel_mat_at_samples,
+    centered_kernel_mat_samples = centered_kernel_mat_samples,
     samples = samples,
     base_measure_weights = base_measure_weights,
     dimension = dimension
@@ -136,8 +146,8 @@ kef <- function(samples, grids, boundaries, lambda, tau) {
   # Compute density estimates based on whether grids evaluation is required
   if (!density_only_samples) {
     dens <- get_dens(
-      centered_kernel_mat_at_samples,
-      centered_kernel_mat_at_grids,
+      centered_kernel_mat_samples,
+      centered_kernel_mat_grids,
       centered_kernel_self_grids,
       samples,
       grids,
@@ -147,10 +157,17 @@ kef <- function(samples, grids, boundaries, lambda, tau) {
       as.vector(weights_hat)
     )
 
+    if(dimension == 1){
+      # This is required because due to some time saving we sorted samples above
+      # and now dens is for sorted index so we need to order it based on input so
+      # the user see the correct output.
+      dens_samples <- as.vector(dens$samples)[unsort_index]
+    }
+
     # Store results including grids estimates
     result_list <- list(
       weights = as.vector(weights_hat),
-      dens_samples = as.vector(dens$samples),
+      dens_samples = dens_samples,
       dens_grids = as.vector(dens$grids)
     )
   } else {
@@ -163,6 +180,12 @@ kef <- function(samples, grids, boundaries, lambda, tau) {
       weight_vec = as.vector(weights_hat)
     )
 
+    if(dimension == 1){
+      # This is required because due to some time saving we sorted samples above
+      # and now dens is for sorted index so we need to order it based on input so
+      # the user see the correct output.
+      dens <- dens[unsort_index]
+    }
 
     # Store results (no grids estimates)
     result_list <- list(

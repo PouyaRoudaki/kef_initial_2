@@ -29,8 +29,8 @@ get_middle_points_grid <- function(min, samples, max) {
     .Call(`_kefV1_get_middle_points_grid`, min, samples, max)
 }
 
-get_s_function <- function(weight_vec, lambda, tau, centered_kernel_mat_at_samples, samples, base_measure_weights, dimension) {
-    .Call(`_kefV1_get_s_function`, weight_vec, lambda, tau, centered_kernel_mat_at_samples, samples, base_measure_weights, dimension)
+get_s_function <- function(weight_vec, lambda, tau, centered_kernel_mat_samples, samples, base_measure_weights, dimension) {
+    .Call(`_kefV1_get_s_function`, weight_vec, lambda, tau, centered_kernel_mat_samples, samples, base_measure_weights, dimension)
 }
 
 generate_voronoi <- function(points, x_min, x_max, y_min, y_max) {

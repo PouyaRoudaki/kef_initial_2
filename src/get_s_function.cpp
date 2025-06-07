@@ -11,7 +11,7 @@ using namespace arma;
 arma::vec get_s_function(const arma::vec& weight_vec,
                          double lambda,
                          double tau,
-                         const arma::mat& centered_kernel_mat_at_samples,
+                         const arma::mat& centered_kernel_mat_samples,
                          const arma::vec& samples,
                          const arma::vec& base_measure_weights,
                          double dimension) {
@@ -20,7 +20,7 @@ arma::vec get_s_function(const arma::vec& weight_vec,
   double n = samples.n_elem;
 
   // Compute densities
-  arma::vec dens = get_dens_wo_grid(centered_kernel_mat_at_samples,
+  arma::vec dens = get_dens_wo_grid(centered_kernel_mat_samples,
                                     samples,
                                     base_measure_weights,
                                     dimension,
@@ -34,8 +34,8 @@ arma::vec get_s_function(const arma::vec& weight_vec,
   arma::vec prob_sample_via_base = dens_sample_via_base / sum(dens_sample_via_base);
 
   // Compute the function s(weight_vec)
-  arma::vec s = lambda * (sum(centered_kernel_mat_at_samples, 1) -
-    centered_kernel_mat_at_samples * prob_sample_via_base * n) -
+  arma::vec s = lambda * (sum(centered_kernel_mat_samples, 1) -
+    centered_kernel_mat_samples * prob_sample_via_base * n) -
     tau * (weight_vec / prob_sample_via_base);
 
   return s;

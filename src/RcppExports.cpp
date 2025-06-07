@@ -115,19 +115,19 @@ BEGIN_RCPP
 END_RCPP
 }
 // get_s_function
-arma::vec get_s_function(const arma::vec& weight_vec, double lambda, double tau, const arma::mat& centered_kernel_mat_at_samples, const arma::vec& samples, const arma::vec& base_measure_weights, double dimension);
-RcppExport SEXP _kefV1_get_s_function(SEXP weight_vecSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP centered_kernel_mat_at_samplesSEXP, SEXP samplesSEXP, SEXP base_measure_weightsSEXP, SEXP dimensionSEXP) {
+arma::vec get_s_function(const arma::vec& weight_vec, double lambda, double tau, const arma::mat& centered_kernel_mat_samples, const arma::vec& samples, const arma::vec& base_measure_weights, double dimension);
+RcppExport SEXP _kefV1_get_s_function(SEXP weight_vecSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP centered_kernel_mat_samplesSEXP, SEXP samplesSEXP, SEXP base_measure_weightsSEXP, SEXP dimensionSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type weight_vec(weight_vecSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< double >::type tau(tauSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type centered_kernel_mat_at_samples(centered_kernel_mat_at_samplesSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type centered_kernel_mat_samples(centered_kernel_mat_samplesSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type samples(samplesSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type base_measure_weights(base_measure_weightsSEXP);
     Rcpp::traits::input_parameter< double >::type dimension(dimensionSEXP);
-    rcpp_result_gen = Rcpp::wrap(get_s_function(weight_vec, lambda, tau, centered_kernel_mat_at_samples, samples, base_measure_weights, dimension));
+    rcpp_result_gen = Rcpp::wrap(get_s_function(weight_vec, lambda, tau, centered_kernel_mat_samples, samples, base_measure_weights, dimension));
     return rcpp_result_gen;
 END_RCPP
 }
