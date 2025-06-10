@@ -94,6 +94,8 @@ kef <- function(samples, grids, lambda, tau, boundaries = NULL) {
     stop("samples must be either a numeric vector or a numeric matrix.")
   }
 
+
+
   # Compute the centered kernel matrix at samplesd points
   centered_kernel_mat_samples <- centered_kernel_matrix(
     dimension = dimension,
@@ -130,8 +132,10 @@ kef <- function(samples, grids, lambda, tau, boundaries = NULL) {
     ))
   }
 
+
   # Estimating the base measure
   base_measure_weights <- get_base_measures(samples, boundaries, dimension = dimension)
+
 
   # Estimate the weight vector using the Barzilai-Borwein optimization method
   weights_hat <- get_weights(
@@ -142,6 +146,7 @@ kef <- function(samples, grids, lambda, tau, boundaries = NULL) {
     base_measure_weights = base_measure_weights,
     dimension = dimension
   )
+
 
   # Compute density estimates based on whether grids evaluation is required
   if (!density_only_samples) {
@@ -162,13 +167,23 @@ kef <- function(samples, grids, lambda, tau, boundaries = NULL) {
       # and now dens is for sorted index so we need to order it based on input so
       # the user see the correct output.
       dens_samples <- as.vector(dens$samples)[unsort_index]
+
+      dens_unnorm_samples <- as.vector(dens$unnorm_samples)[unsort_index] ##
+    }else{
+      dens_samples <- dens$samples
+
+      dens_unnorm_samples <- as.vector(dens$unnorm_samples) ##
     }
+
 
     # Store results including grids estimates
     result_list <- list(
       weights = as.vector(weights_hat),
       dens_samples = dens_samples,
-      dens_grids = as.vector(dens$grids)
+      dens_unnorm_samples = dens_unnorm_samples, ##
+      dens_grids = as.vector(dens$grids),
+      dens_unnorm_grids = as.vector(dens$unnorm_grids),##
+      norm_cte = dens$norm_cte
     )
   } else {
     dens <- get_dens_wo_grid(

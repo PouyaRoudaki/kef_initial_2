@@ -70,9 +70,21 @@ arma::vec get_dens_wo_grid(const arma::mat& centered_kernel_mat_samples,
   if (dimension == 1) {
     // 1D case: use trapezoidal rule for integration
     normalizing_cte = arma::as_scalar(trapz(samples, unnorm_density_samples));
+    //normalizing_cte = arma::dot(base_measure_weights, unnorm_density_samples);
   } else {
     // Multivariate case: use dot product with base measure weights
     normalizing_cte = arma::dot(base_measure_weights, unnorm_density_samples);
+    //if (normalizing_cte == 0.0){
+      //double min_val = arma::min(weight_vec);
+      //double max_val = arma::max(weight_vec);
+      //double mean_val = arma::mean(weight_vec);
+      //int n = weight_vec.size();
+
+      //Rcpp::Rcout << "Summary of weight_vec:\n";
+      //Rcpp::Rcout << "Length: " << n << "\n";
+      //Rcpp::Rcout << "Min: " << min_val << ", Max: " << max_val << ", Mean: " << mean_val << "\n";
+      //normalizing_cte = 1.0;
+    //}
   }
 
   // Check for invalid normalization constant
@@ -87,10 +99,6 @@ arma::vec get_dens_wo_grid(const arma::mat& centered_kernel_mat_samples,
   if (normalizing_cte < 0) {
     Rcpp::Rcout << "Error: Negative normalizing constant detected. Debug inputs.\n";
   }
-
-  //if (arma::any(dens_samples < 0)) {
-  //  Rcpp::Rcout << "Error: Negative densities detected. Debug inputs.\n";
-  //}
 
   // Return normalized density
   return dens_samples;
@@ -119,6 +127,7 @@ Rcpp::List get_dens(const arma::mat& centered_kernel_mat_samples,
   if (dimension == 1) {
     // 1D case: integrate using trapezoidal rule over grid
     normalizing_cte = arma::as_scalar(trapz(grids, unnorm_density_grids));
+    //normalizing_cte = arma::dot(base_measure_weights, unnorm_density_samples);
   } else {
     // Higher-dimensional case: weighted sum over base measure weights
     normalizing_cte = arma::dot(base_measure_weights, unnorm_density_samples);
@@ -131,6 +140,9 @@ Rcpp::List get_dens(const arma::mat& centered_kernel_mat_samples,
   // Return normalized densities
   return Rcpp::List::create(
     Rcpp::Named("samples") = dens_samples_norm,
-    Rcpp::Named("grids") = dens_grid_norm
+    Rcpp::Named("grids") = dens_grid_norm,
+    Rcpp::Named("unnorm_samples") = unnorm_density_samples,
+    Rcpp::Named("unnorm_grids") = unnorm_density_grids,
+    Rcpp::Named("norm_cte") = normalizing_cte
   );
 }

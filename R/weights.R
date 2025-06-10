@@ -24,6 +24,7 @@ get_weights <- function(lambda,
                         dimension,
                         print_trace = FALSE) {
 
+
   # Number of sampled points
   n <- nrow(centered_kernel_mat_samples)
 

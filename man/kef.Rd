@@ -4,18 +4,18 @@
 \alias{kef}
 \title{Kernel Density Estimation Using the KEF Method}
 \usage{
-kef(samples, grids, boundaries = NULL, lambda, tau)
+kef(samples, grids, lambda, tau, boundaries = NULL)
 }
 \arguments{
 \item{samples}{A numeric vector representing the observed samples points.}
 
 \item{grids}{A numeric vector representing the evaluation grids.}
 
-\item{boundaries}{A numeric vector (for 1D) or matrix (for multi-dimensional input) specifying the domain boundaries. Optional; if not provided, the domain boundaries are extended by 10\% around the samples range.}
-
 \item{lambda}{A numeric scalar for the lambda parameter (regularization term).}
 
 \item{tau}{A numeric scalar for the tau parameter.}
+
+\item{boundaries}{A numeric vector (for 1D) or matrix (for multi-dimensional input) specifying the domain boundaries. Optional; if not provided, the domain boundaries are extended by 10\% around the samples range.}
 }
 \value{
 A list containing:

@@ -33,4 +33,41 @@ l2_ise <- function(grid, true_density_grid, estimated_density_grid){
 }
 
 
+#' Compute the Maximum Mean Discrepancy (MMD)
+#'
+#' This function calculates the Maximum Mean Discrepancy (MMD)
+#'
+#' @param kernel_matrix_at_grids Numeric matrix The kernel matrix evaluated at the grid points.
+#' @param true_density_grids Numeric vector. The true density values evaluated at `grid` points.
+#' @param estimated_density_grids Numeric vector. The estimated density values evaluated at `grid` points.
+#'
+#' @return A numeric scalar representing the estimated MMD on grids.
+#' @export
+mmd_grids <- function(kernel_matrix_at_grids, true_density_grids, estimated_density_grids){
+  n <- dim(kernel_matrix_at_grids)[1]
+  mmd_grids <- (n^(-2))* t(true_density_grids - estimated_density_grids) %*%
+    kernel_matrix_at_grids %*%
+    (true_density_grids - estimated_density_grids)
+  return(as.numeric(mmd_grids))
+}
+
+#' Compute the Maximum Mean Discrepancy (MMD) using samples
+#'
+#' This function calculates the Maximum Mean Discrepancy (MMD) using samples.
+#'
+#' @param kernel_matrix_at_samples Numeric matrix The kernel matrix evaluated at the sample points.
+#' @param true_density_samples Numeric vector. The true density values evaluated at `sample` points.
+#' @param estimated_density_samples Numeric vector. The estimated density values evaluated at `sample` points.
+#' @param base_measure_weights Numeric vector. The base measure weights.
+#'
+#' @return A numeric scalar representing the estimated MMD on samples.
+#' @export
+mmd_samples <- function(kernel_matrix_at_samples, true_density_samples, estimated_density_samples, base_measure_weights){
+  n <- dim(kernel_matrix_at_grids)[1]
+  mmd_samples <- t(base_measure_weights * (true_density_samples - estimated_density_samples)) %*%
+    kernel_matrix_at_samples %*%
+    (base_measure_weights * (true_density_samples - estimated_density_samples))
+  return(as.numeric(mmd_samples))
+}
+
 
