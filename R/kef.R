@@ -96,7 +96,7 @@ kef <- function(samples, grids, lambda, tau, boundaries = NULL) {
 
 
 
-  # Compute the centered kernel matrix at samplesd points
+  # Compute the centered kernel matrix at samples
   centered_kernel_mat_samples <- centered_kernel_matrix(
     dimension = dimension,
     eval_points_1 = samples,

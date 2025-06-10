@@ -46,7 +46,7 @@ get_true_weights <- function(samples, grids, true_density_grids) {
     dimension = dimension,
     eval_points_1 = samples,
     eval_points_2 = samples,
-    centering_grid = grid,
+    centering_grid = grids,
     hurst_coef = 0.5
   )
 
@@ -69,10 +69,12 @@ get_true_weights <- function(samples, grids, true_density_grids) {
   ))
 
   # Given true f(x) for all grid points
-  f_x <- true_density_at_grid
+  f_x <- true_density_grids
 
   # Estimating the base measure
-  base_measure_weights <- get_base_measures(samples, boundaries, dimension = dimension)
+  base_measure_weights <- get_base_measures(samples,
+                                            c(min(grids), max(grids)),
+                                            dimension = dimension)
 
   # Function to compute predicted f(x) given weights w
   predicted_f <- function(w) {
@@ -84,7 +86,7 @@ get_true_weights <- function(samples, grids, true_density_grids) {
                         base_measure_weights,
                         dimension,
                         lambda = 1,
-                        weight_vec)$grids
+                        w)$grids
 
     return(density)
   }
@@ -95,7 +97,7 @@ get_true_weights <- function(samples, grids, true_density_grids) {
   }
 
   # Choose method for solving the nonlinear system of equations
-  initial_w <- rep(0, length(sample))  # Initial guess for weights
+  initial_w <- rep(0, length(samples))  # Initial guess for weights
 
 
   result <- optim(initial_w, loss_function, method = "L-BFGS-B")

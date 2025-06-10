@@ -26,9 +26,9 @@ rkhs_se <- function(w_hat_vec, w_vec, kernel_matrix_at_samples){
 #'
 #' @return A numeric scalar representing the computed ISE.
 #' @export
-l2_ise <- function(grid, true_density_grid, estimated_density_grid){
-  l2_error <- (true_density_grid - estimated_density_grid)^2
-  ise <- pracma::trapz(grid, l2_error)
+l2_ise <- function(true_density_grid, estimated_density_grid){
+  n <- length(true_density_grid)
+  ise <- n^(-1)*sum((true_density_grid - estimated_density_grid)^2)
   return(as.numeric(ise))
 }
 
@@ -45,9 +45,9 @@ l2_ise <- function(grid, true_density_grid, estimated_density_grid){
 #' @export
 mmd_grids <- function(kernel_matrix_at_grids, true_density_grids, estimated_density_grids){
   n <- dim(kernel_matrix_at_grids)[1]
-  mmd_grids <- (n^(-2))* t(true_density_grids - estimated_density_grids) %*%
-    kernel_matrix_at_grids %*%
-    (true_density_grids - estimated_density_grids)
+  length((true_density_grids - estimated_density_grids))
+  dim(kernel_matrix_at_grids)
+  mmd_grids <- (n^(-2))* (t(true_density_grids - estimated_density_grids) %*% kernel_matrix_at_grids %*% (true_density_grids - estimated_density_grids))
   return(as.numeric(mmd_grids))
 }
 
