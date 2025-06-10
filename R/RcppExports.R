@@ -33,7 +33,3 @@ get_s_function <- function(weight_vec, lambda, tau, centered_kernel_mat_samples,
     .Call(`_kefV1_get_s_function`, weight_vec, lambda, tau, centered_kernel_mat_samples, samples, base_measure_weights, dimension)
 }
 
-generate_voronoi <- function(points, x_min, x_max, y_min, y_max) {
-    .Call(`_kefV1_generate_voronoi`, points, x_min, x_max, y_min, y_max)
-}
-

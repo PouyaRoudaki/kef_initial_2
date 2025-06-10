@@ -131,21 +131,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// generate_voronoi
-Rcpp::List generate_voronoi(Rcpp::NumericMatrix points, double x_min, double x_max, double y_min, double y_max);
-RcppExport SEXP _kefV1_generate_voronoi(SEXP pointsSEXP, SEXP x_minSEXP, SEXP x_maxSEXP, SEXP y_minSEXP, SEXP y_maxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type points(pointsSEXP);
-    Rcpp::traits::input_parameter< double >::type x_min(x_minSEXP);
-    Rcpp::traits::input_parameter< double >::type x_max(x_maxSEXP);
-    Rcpp::traits::input_parameter< double >::type y_min(y_minSEXP);
-    Rcpp::traits::input_parameter< double >::type y_max(y_maxSEXP);
-    rcpp_result_gen = Rcpp::wrap(generate_voronoi(points, x_min, x_max, y_min, y_max));
-    return rcpp_result_gen;
-END_RCPP
-}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_kefV1_centered_kernel_matrix", (DL_FUNC) &_kefV1_centered_kernel_matrix, 4},
@@ -156,7 +141,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_kefV1_get_dens", (DL_FUNC) &_kefV1_get_dens, 9},
     {"_kefV1_get_middle_points_grid", (DL_FUNC) &_kefV1_get_middle_points_grid, 3},
     {"_kefV1_get_s_function", (DL_FUNC) &_kefV1_get_s_function, 7},
-    {"_kefV1_generate_voronoi", (DL_FUNC) &_kefV1_generate_voronoi, 5},
     {NULL, NULL, 0}
 };
 
