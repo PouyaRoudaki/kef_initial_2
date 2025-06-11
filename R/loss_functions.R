@@ -20,7 +20,6 @@ rkhs_se <- function(w_hat_vec, w_vec, kernel_matrix_at_samples){
 #'
 #' This function calculates the Integrated Squared Error (ISE) between the true and estimated density functions using numerical integration.
 #'
-#' @param grid Numeric vector. The grid points where the densities are evaluated.
 #' @param true_density_grid Numeric vector. The true density values evaluated at `grid` points.
 #' @param estimated_density_grid Numeric vector. The estimated density values evaluated at `grid` points.
 #'
@@ -45,8 +44,6 @@ l2_ise <- function(true_density_grid, estimated_density_grid){
 #' @export
 mmd_grids <- function(kernel_matrix_at_grids, true_density_grids, estimated_density_grids){
   n <- dim(kernel_matrix_at_grids)[1]
-  length((true_density_grids - estimated_density_grids))
-  dim(kernel_matrix_at_grids)
   mmd_grids <- (n^(-2))* (t(true_density_grids - estimated_density_grids) %*% kernel_matrix_at_grids %*% (true_density_grids - estimated_density_grids))
   return(as.numeric(mmd_grids))
 }

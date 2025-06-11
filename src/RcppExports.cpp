@@ -132,12 +132,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // marginal_log_likelihood
-double marginal_log_likelihood(const arma::mat& centered_kernel_mat_at_samples, const arma::vec& samples, const arma::vec& base_measure_weights, double dimension, const arma::vec p_vec, double lambda, double tau, const arma::mat& std_rnorm_matrix, int MC_iterations, bool parallel_computing);
-RcppExport SEXP _kefV1_marginal_log_likelihood(SEXP centered_kernel_mat_at_samplesSEXP, SEXP samplesSEXP, SEXP base_measure_weightsSEXP, SEXP dimensionSEXP, SEXP p_vecSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP std_rnorm_matrixSEXP, SEXP MC_iterationsSEXP, SEXP parallel_computingSEXP) {
+double marginal_log_likelihood(const arma::mat& centered_kernel_mat_samples, const arma::vec& samples, const arma::vec& base_measure_weights, double dimension, const arma::vec p_vec, double lambda, double tau, const arma::mat& std_rnorm_matrix, int MC_iterations, bool parallel_computing);
+RcppExport SEXP _kefV1_marginal_log_likelihood(SEXP centered_kernel_mat_samplesSEXP, SEXP samplesSEXP, SEXP base_measure_weightsSEXP, SEXP dimensionSEXP, SEXP p_vecSEXP, SEXP lambdaSEXP, SEXP tauSEXP, SEXP std_rnorm_matrixSEXP, SEXP MC_iterationsSEXP, SEXP parallel_computingSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type centered_kernel_mat_at_samples(centered_kernel_mat_at_samplesSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type centered_kernel_mat_samples(centered_kernel_mat_samplesSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type samples(samplesSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type base_measure_weights(base_measure_weightsSEXP);
     Rcpp::traits::input_parameter< double >::type dimension(dimensionSEXP);
@@ -147,7 +147,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type std_rnorm_matrix(std_rnorm_matrixSEXP);
     Rcpp::traits::input_parameter< int >::type MC_iterations(MC_iterationsSEXP);
     Rcpp::traits::input_parameter< bool >::type parallel_computing(parallel_computingSEXP);
-    rcpp_result_gen = Rcpp::wrap(marginal_log_likelihood(centered_kernel_mat_at_samples, samples, base_measure_weights, dimension, p_vec, lambda, tau, std_rnorm_matrix, MC_iterations, parallel_computing));
+    rcpp_result_gen = Rcpp::wrap(marginal_log_likelihood(centered_kernel_mat_samples, samples, base_measure_weights, dimension, p_vec, lambda, tau, std_rnorm_matrix, MC_iterations, parallel_computing));
     return rcpp_result_gen;
 END_RCPP
 }

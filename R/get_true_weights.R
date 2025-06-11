@@ -60,7 +60,7 @@ get_true_weights <- function(samples, grids, true_density_grids) {
   )
 
   # Compute the diagonal of the centered kernel matrix at grid points
-  centered_kernel_self_grid <- diag(centered_kernel_matrix(
+  centered_kernel_self_grids <- diag(centered_kernel_matrix(
     dimension = dimension,
     eval_points_1 = grids,
     eval_points_2 = grids,

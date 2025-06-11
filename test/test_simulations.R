@@ -10,6 +10,7 @@ library("ks")
 library("pracma")
 library("parallelly")
 library("doParallel")
+library("tidyverse")
 library("foreach")
 
 # Set up parallel backend
@@ -47,7 +48,6 @@ true_density_df_grids <- data.frame(grid = grids, true_pdf = true_density_grids)
 
 centered_kernel_self_grids_mat <- centered_kernel_matrix(dimension = 1, grids, grids, grids, 0.5)
 
-centered_kernel_self_grids <- diag(centered_kernel_self_grids_mat)
 
 # Uniform Example
 #params_uniform <- list(min = min_x, max = max_x)
@@ -58,7 +58,8 @@ n_iter <- 10
 result_list <- vector("list", n_iter)
 
 # Parallel execution of iterations
-result_list <- foreach(i = 1:n_iter, .packages = c("quantreg","ks", "pracma", "foreach", "kefV1")) %dopar% {
+result_list <- foreach(i = 1:n_iter,
+                       .packages = c("quantreg","ks", "pracma", "foreach", "kefV1")) %dopar% {
   cat("Iteration:", i, "\n")
 
   n_sample <- 100
@@ -69,6 +70,7 @@ result_list <- foreach(i = 1:n_iter, .packages = c("quantreg","ks", "pracma", "f
   # Compute kernel matrices
   centered_kernel_mat_samples <- centered_kernel_matrix(dimension = 1, samples, samples, grids, 0.5)
   centered_kernel_mat_grids <- centered_kernel_matrix(dimension = 1, samples, grids, grids, 0.5)
+
 
 
   # Compute true weights
@@ -183,7 +185,7 @@ result_list <- foreach(i = 1:n_iter, .packages = c("quantreg","ks", "pracma", "f
   kef_rot_lambda <- 1
   kef_rot_tau <- 1 / 1350
   kef_rot_ratio <- (kef_rot_lambda)^2 / kef_rot_tau
-  kef_rot <- kef(samples, grids, lambda = kef_rot_lambda, tau = kef_rot_tau)
+  kef_rot <- kef(samples = samples, grids = grids, lambda = kef_rot_lambda, tau = kef_rot_tau)
   kef_rot_time <- kef_rot$time
   estimated_density_grids <- kef_rot$dens_grids
   kef_rot_ise <- l2_ise( true_density_grids, estimated_density_grids)
@@ -191,35 +193,54 @@ result_list <- foreach(i = 1:n_iter, .packages = c("quantreg","ks", "pracma", "f
   kef_rot_mmd_grids <- mmd_grids(centered_kernel_self_grids_mat, true_density_grids, estimated_density_grids)
 
   # KEF: Marginal Log Likelihood (MML) Optimization
-  start_time_mml <- Sys.time()
-  optimized_mml <- optimize_marginal_log_likelihood(
-    centered_kernel_mat_samples, min_x, max_x, samples,
-    initial_lambda = 1, initial_tau = 1, initial_w = rep(0, length(samples)),
-    MC_iterations = 100000, max.iterations = 10, tol = 1e-1,
-    parallel_computing = TRUE, seed = 4
-  )
-  kef_mml <- kef(samples, grids, lambda = optimized_mml$lambda, tau = optimized_mml$tau)
-  kef_mml_time <- as.numeric(kef_mml$time) + as.numeric(difftime(Sys.time(), start_time_mml, units = "secs"))
-  estimated_density_grids <- kef_mml$probs_grids
-  kef_mml_ise <- l2_ise(grids, true_density_grids, estimated_density_grids)
-  kef_mml_se <- rkhs_se(w_hat_vec = kef_mml$weights, w_vec = w_true, kernel_matrix_at_samples = centered_kernel_mat_samples)
-  kef_mml_mmd_grids <- mmd_grids(centered_kernel_mat_grids, true_density_grids, estimated_density_grids)
-
-  kef_mml_lambda <- optimized_mml$lambda
-  kef_mml_tau <- optimized_mml$tau
-  kef_mml_ratio <- (kef_mml_lambda)^2 / kef_mml_tau
+  start_time_kef_mml <- Sys.time()
+  mml <- maximize_marginal_likelihood(samples,
+    grids,
+    initial_lambda = 1,
+    initial_tau = 1,
+    initial_weights = rep(0, length(samples)),
+    MC_iterations = 10000,
+    max.iterations = 5,
+    tol = 1e-4,  # Convergence tolerance
+    parallel_computing = TRUE,
+    seed = 1,
+    boundaries = NULL)
+  if((!is.null(mml$lambda))& (!is.null(mml$lambda))){
+    kef_mml <- kef(samples = samples, grids, lambda = mml$lambda, tau = mml$tau)
+    kef_mml <- kef(samples = samples, grids, lambda = 1, tau = 1)
+    estimated_density_grids <- kef_mml$dens_grids
+    kef_mml_ise <- l2_ise(true_density_grids, estimated_density_grids)
+    kef_mml_se <- rkhs_se(w_hat_vec = kef_mml$weights, w_vec = w_true, kernel_matrix_at_samples = centered_kernel_mat_samples)
+    kef_mml_mmd_grids <- mmd_grids(centered_kernel_self_grids_mat, true_density_grids, estimated_density_grids)
+    kef_mml_lambda <- mml$lambda
+    kef_mml_tau <- mml$tau
+    kef_mml_ratio <- (kef_mml_lambda)^2 / kef_mml_tau
+  }else{
+    kef_mml_ise <- NA
+    kef_mml_se <- NA
+    kef_mml_mmd_grids <- NA
+    kef_mml_lambda <- NA
+    kef_mml_tau <- NA
+    kef_mml_ratio <- NA
+  }
+  kef_mml_time <- as.numeric(kef_mml$time) + as.numeric(difftime(Sys.time(), start_time_kef_mml, units = "secs"))
 
   # Store results in a dataframe
   result_iter_i <- data.frame(
     method = c("fixed_pi", "fixed_bcv", "fixed_lscv", "fixed_ns",
-               "adaptive_default","adaptive_cv_optim", "kef_rot"),
-    time = c(pi_time, bcv_time, lscv_time, ns_time, adaptive_default_time, adaptive_cv_time, kef_rot_time),
-    ISE = c(pi_ise, bcv_ise, lscv_ise, ns_ise, adaptive_default_ise, adaptive_cv_optim_ise , kef_rot_ise),
-    MMD_error_on_grid = c(pi_mmd_grids, bcv_mmd_grids, lscv_mmd_grids, ns_mmd_grids, adaptive_default_mmd_grids, adaptive_cv_optim_mmd_grids , kef_rot_mmd_grids),
-    RKHS_SE = c(NA, NA, NA, NA, NA, NA, kef_rot_se),
-    lambda = c(NA, NA, NA, NA, NA, NA, kef_rot_lambda),
-    tau = c(NA, NA, NA, NA, NA, NA, kef_rot_tau),
-    ratio = c(NA, NA, NA, NA, NA, NA, kef_rot_ratio)
+               "adaptive_default","adaptive_cv_optim", "kef_rot", "kef_mml"),
+    time = c(pi_time, bcv_time, lscv_time, ns_time, adaptive_default_time,
+             adaptive_cv_time, kef_rot_time, kef_mml_time),
+    ISE = c(pi_ise, bcv_ise, lscv_ise, ns_ise, adaptive_default_ise,
+            adaptive_cv_optim_ise , kef_rot_ise, kef_mml_ise),
+    MMD_error_on_grid = c(pi_mmd_grids, bcv_mmd_grids, lscv_mmd_grids,
+                          ns_mmd_grids, adaptive_default_mmd_grids,
+                          adaptive_cv_optim_mmd_grids , kef_rot_mmd_grids,
+                          kef_mml_mmd_grids),
+    RKHS_SE = c(NA, NA, NA, NA, NA, NA, kef_rot_se,kef_mml_se),
+    lambda = c(NA, NA, NA, NA, NA, NA, kef_rot_lambda, kef_mml_lambda),
+    tau = c(NA, NA, NA, NA, NA, NA, kef_rot_tau, kef_mml_tau),
+    ratio = c(NA, NA, NA, NA, NA, NA, kef_rot_ratio, kef_mml_ratio)
   )
 
   return(result_iter_i)

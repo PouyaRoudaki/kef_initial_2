@@ -10,8 +10,6 @@ l2_ise(true_density_grid, estimated_density_grid)
 \item{true_density_grid}{Numeric vector. The true density values evaluated at \code{grid} points.}
 
 \item{estimated_density_grid}{Numeric vector. The estimated density values evaluated at \code{grid} points.}
-
-\item{grid}{Numeric vector. The grid points where the densities are evaluated.}
 }
 \value{
 A numeric scalar representing the computed ISE.

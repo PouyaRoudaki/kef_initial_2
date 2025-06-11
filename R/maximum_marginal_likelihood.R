@@ -5,8 +5,6 @@
 #'
 #' @param centered_kernel_mat_at_samples A matrix of centered kernel values at sampled points.
 #' @param samples A numeric vector of sampled points.
-#' @param min_x The minimum x value.
-#' @param max_x The maximum x value.
 #' @param p_vec A probability vector (default: uniform distribution).
 #' @param lambda A scalar for the lambda hyperparameter.
 #' @param tau A scalar for the tau hyperparameter.
@@ -18,8 +16,8 @@
 #' @export
 marginal_log_likelihood <- function(centered_kernel_mat_samples,
                                     samples,
-                                    min_x,
-                                    max_x,
+                                    base_measure_weights,
+                                    dimension,
                                     p_vec = rep(1, nrow(centered_kernel_mat_at_samples)),
                                     lambda,
                                     tau,
@@ -31,8 +29,8 @@ marginal_log_likelihood <- function(centered_kernel_mat_samples,
   .Call("_kefV1_marginal_log_likelihood",
         centered_kernel_mat_samples,
         samples,
-        min_x,
-        max_x,
+        base_measure_weights,
+        dimension,
         p_vec,
         lambda,
         tau,
@@ -44,19 +42,18 @@ marginal_log_likelihood <- function(centered_kernel_mat_samples,
 
 
 
-#' Optimize Marginal Log-Likelihood with Convergence Check
+
+#' Maximize Marginal Log-Likelihood with Convergence Check
 #'
 #' This function optimizes the hyper-parameters \eqn{\lambda} and \eqn{\tau} by maximizing
 #' the marginal log-likelihood using L-BFGS-B optimization. Instead of a grid search,
 #' it efficiently finds the best parameters while checking for convergence.
 #'
-#' @param centered_kernel_mat_samples The kernel matrix centered at sampled points.
-#' @param min_x Minimum value of the sampled domain.
-#' @param max_x Maximum value of the sampled domain.
 #' @param samples Vector of sampled points.
+#' @param grids Vector of centering grids.
 #' @param initial_lambda Initial value for \eqn{\lambda} (default: 1).
 #' @param initial_tau Initial value for \eqn{\tau} (default: 1).
-#' @param initial_w Initial weight vector (default: zeros of length `sampled_x`).
+#' @param initial_weights Initial weight vector (default: zeros of length `samples`).
 #' @param MC_iterations Number of Monte Carlo iterations.
 #' @param max.iterations Maximum number of iterations (default: 5).
 #' @param tol Convergence tolerance (default: `1e-4`). If the relative change in
@@ -64,6 +61,7 @@ marginal_log_likelihood <- function(centered_kernel_mat_samples,
 #' @param parallel_computing Boolean flag indicating whether parallelization should be
 #' used for optimization (default: `TRUE`).
 #' @param seed An integer that controls the randomness.
+#' @param boundaries A vector including the boundaries
 #'
 #' @return A list containing:
 #' \describe{
@@ -92,8 +90,8 @@ marginal_log_likelihood <- function(centered_kernel_mat_samples,
 #' }
 #'
 #' @export
-maximise_marginal_likelihood <- function(samples,
-                                         boundaries,
+maximize_marginal_likelihood <- function(samples,
+                                         grids,
                                          initial_lambda = 1,
                                          initial_tau = 1,
                                          initial_weights = rep(0, length(samples)),
@@ -101,7 +99,8 @@ maximise_marginal_likelihood <- function(samples,
                                          max.iterations = 5,
                                          tol = 1e-4,  # Convergence tolerance
                                          parallel_computing = TRUE,
-                                         seed = 1) {
+                                         seed = 1,
+                                         boundaries = NULL) {
 
   # Setting default boundaries with 10% padding if the boundaries are not provided.
   if (is.null(boundaries)) {
@@ -219,6 +218,8 @@ maximise_marginal_likelihood <- function(samples,
       - marginal_log_likelihood(
         centered_kernel_mat_samples,
         samples,
+        base_measure_weights,
+        dimension,
         p_vec,
         lambda,
         tau,
@@ -227,15 +228,15 @@ maximise_marginal_likelihood <- function(samples,
         parallel_computing)
     }
 
-    cat(paste0("Initial lambda: ", 0.1,", Initial tau: ", 1e-4, "\n"))
+    cat(paste0("Initial lambda: ", 1,", Initial tau: ", 1e-2, "\n"))
 
     # Optimization using L-BFGS-B (bounded optimization)
     opt_result <- optim(
-      par = c(log(0.1), log(1e-4)),  # Start close to expected values
+      par = c(log(1), log(1e-2)),  # Start close to expected values
       fn = objective_function,
       method = "L-BFGS-B",
-      lower = c(log(1e-2), log(1e-6)),  # Lower bounds for lambda and tau
-      upper = c(log(1e2), log(1e2))     # Upper bounds
+      lower = c(log(1e-1), log(1e-6)),  # Lower bounds for lambda and tau
+      upper = c(log(1e1), log(1e1))     # Upper bounds
     )
 
     # Retrieve optimal lambda and tau

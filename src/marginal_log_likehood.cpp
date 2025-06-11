@@ -10,7 +10,7 @@
 // Function to compute the marginal log likelihood for a pair of hyperparameters lambda and tau
 // [[Rcpp::export]]
 double marginal_log_likelihood(
-    const arma::mat& centered_kernel_mat_at_samples,
+    const arma::mat& centered_kernel_mat_samples,
     const arma::vec& samples,
     const arma::vec& base_measure_weights,
     double dimension,
@@ -21,9 +21,7 @@ double marginal_log_likelihood(
     int MC_iterations,
     bool parallel_computing = true) {
 
-  int n = centered_kernel_mat_at_samples.n_rows;
-
-
+  int n = centered_kernel_mat_samples.n_rows;
 
   arma::mat w_sampled(MC_iterations, n); // Make the w_sampled matrix
   //p_vec = arma::vectorise(p_vec);  // Ensure column vector
@@ -43,7 +41,7 @@ double marginal_log_likelihood(
 #pragma omp parallel for if(parallel_computing) num_threads(omp_get_max_threads())
   for (int i = 0; i < MC_iterations; i++) {
     arma::vec dens_row = get_dens_wo_grid(
-      centered_kernel_mat_at_samples,samples,base_measure_weights,
+      centered_kernel_mat_samples,samples,base_measure_weights,
       dimension, lambda, w_sampled.row(i).t()
     );
 

@@ -33,7 +33,7 @@ get_s_function <- function(weight_vec, lambda, tau, centered_kernel_mat_samples,
     .Call(`_kefV1_get_s_function`, weight_vec, lambda, tau, centered_kernel_mat_samples, samples, base_measure_weights, dimension)
 }
 
-marginal_log_likelihood <- function(centered_kernel_mat_at_samples, samples, base_measure_weights, dimension, p_vec, lambda, tau, std_rnorm_matrix, MC_iterations, parallel_computing = TRUE) {
-    .Call(`_kefV1_marginal_log_likelihood`, centered_kernel_mat_at_samples, samples, base_measure_weights, dimension, p_vec, lambda, tau, std_rnorm_matrix, MC_iterations, parallel_computing)
+marginal_log_likelihood <- function(centered_kernel_mat_samples, samples, base_measure_weights, dimension, p_vec, lambda, tau, std_rnorm_matrix, MC_iterations, parallel_computing = TRUE) {
+    .Call(`_kefV1_marginal_log_likelihood`, centered_kernel_mat_samples, samples, base_measure_weights, dimension, p_vec, lambda, tau, std_rnorm_matrix, MC_iterations, parallel_computing)
 }
 

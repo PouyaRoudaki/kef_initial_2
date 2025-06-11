@@ -7,8 +7,8 @@
 marginal_log_likelihood(
   centered_kernel_mat_samples,
   samples,
-  min_x,
-  max_x,
+  base_measure_weights,
+  dimension,
   p_vec = rep(1, nrow(centered_kernel_mat_at_samples)),
   lambda,
   tau,
@@ -19,10 +19,6 @@ marginal_log_likelihood(
 }
 \arguments{
 \item{samples}{A numeric vector of sampled points.}
-
-\item{min_x}{The minimum x value.}
-
-\item{max_x}{The maximum x value.}
 
 \item{p_vec}{A probability vector (default: uniform distribution).}
 
